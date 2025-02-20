@@ -17,7 +17,7 @@ fun main(){
     val coresEscolhidas = mutableListOf<Int>()
 
     while(true){
-        println("|Calculadora de Resistores|\n Digite quantas faixas(4 ou 5):")
+        println("|Calculadora de Resistores|\n|Digite quantas faixas(4 ou 5)\n|Para sair digite qualquer tecla:")
         when(readlnOrNull()?.toIntOrNull()){
             4 -> {
                 // 4 faixas
@@ -41,16 +41,24 @@ fun main(){
 fun userEscolheCor(Cores: List<Cor>, coresEscolhidas: MutableList<Int>, nFaixas: Int): MutableList<Int>{
     coresEscolhidas.clear()
     coresEscolhidas.addAll(escolherCor(nFaixas))
+    val coresT = mutableListOf<Int>()
+    val coresM = mutableListOf<Int>()
     println("Escolha a cor da faixa multiplicadora")
     for(cor in Cores){//imprimindo as cores dos multiplicadores
-        if(cor.M != null)println("${cor.id} - ${cor.nome}")
+        if(cor.M != null) {
+            println("${cor.id} - ${cor.nome}")
+            coresM.add(cor.id)
+        }
     }
-    escolherMT()?.let { coresEscolhidas.add(it) }
+    escolherMT(coresM).let { coresEscolhidas.add(it) }
     println("Escolha a cor da faixa de tolerância")
     for(cor in Cores){//imprimindo as cores da tolerância
-        if(cor.T != null)println("${cor.id} - ${cor.nome}")
+        if(cor.T != null) {
+            println("${cor.id} - ${cor.nome}")
+            coresT.add(cor.id)
+        }
     }
-    escolherMT()?.let { coresEscolhidas.add(it) }
+    escolherMT(coresT).let { coresEscolhidas.add(it) }
     println(calculo(coresEscolhidas, Cores))
     return coresEscolhidas
 }
@@ -58,24 +66,33 @@ fun escolherCor(nFaixas: Int): MutableList<Int> {
     val coresFaixas = mutableListOf<Int>()
     for(i in 1..(nFaixas - 2)){
         println("Escolher cor da faixa $i")
-        val cor = readlnOrNull()?.toInt()
-        if(cor != null) {
-            coresFaixas.add(cor)
+        var cor = readlnOrNull()?.toIntOrNull()
+        while(cor == null || cor !in 0..9){
+            println("Por favor, digite um número entre 0 e 9:")
+            cor = readlnOrNull()?.toIntOrNull()
         }
+        coresFaixas.add(cor)
     }
     return coresFaixas
 }
-fun escolherMT(): Int? = readlnOrNull()?.toInt()
+fun escolherMT(cores: MutableList<Int>): Int {
+    var cor = readlnOrNull()?.toIntOrNull()
+    while(cor == null || cor !in cores){
+        println("Por favor, digite uma cor válida:")
+        cor = readlnOrNull()?.toIntOrNull()
+    }
+    return cor
+}
 
 fun calculo(escolha: MutableList<Int>, cores: List<Cor>):String{
     if(escolha.size == 4){
         val M = buscarMultiplicador(escolha[2], cores)
-        val r = (escolha[0] * 10 + escolha[1]) * M.toFloat()
+        var r = (escolha[0] * 10 + escolha[1]) * M.toFloat()
         return "$r Ohms ${buscarTolerancia(escolha[3], cores)}%"
     }
     else{
         val M = buscarMultiplicador(escolha[3], cores)
-        val r = ((escolha[0] * 100) + (escolha[1] * 10) + escolha[2]) * M.toFloat()
+        val r = (((escolha[0] * 100) + (escolha[1] * 10) + escolha[2]) * M.toFloat())
         return "$r Ohms ${buscarTolerancia(escolha[4], cores)}%"
     }
 }
