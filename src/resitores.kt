@@ -1,19 +1,20 @@
-data class Cor(val id:Int, val nome:String, val M: Any?, val T: Any?)
+data class Cor(val nome:String, val M: Double?, val T: Double?)
 fun main(){
-    val Cores = listOf(
-        Cor(0,"Preto", 1, null),
-        Cor(1,"Marrom", 10, 1),
-        Cor(2,"Vermelho", 100, 2),
-        Cor(3,"Laranja", 1000, null),
-        Cor(4,"Amarelo", 10_000, null),
-        Cor(5,"Verde", 100_000, 0.5),
-        Cor(6,"Azul", 1_000_000, 0.25),
-        Cor(7,"Violeta", 10_000_000, 0.1),
-        Cor(8,"Cinza", null, null),
-        Cor(9,"Branco", null, null),
-        Cor(22,"Prata", 0.01, 10),
-        Cor(33,"Ouro", 0.1, 5)
-    )
+    val Cores: Map<Int, Cor> = listOf(
+        Cor("Preto", 1.0, null),
+        Cor("Marrom", 10.0, 1.0),
+        Cor("Vermelho", 100.0, 2.0),
+        Cor("Laranja", 1000.0, null),
+        Cor("Amarelo", 10_000.0, null),
+        Cor("Verde", 100_000.0, 0.5),
+        Cor("Azul", 1_000_000.0, 0.25),
+        Cor("Violeta", 10_000_000.0, 0.1),
+        Cor("Cinza", null, null),
+        Cor("Branco", null, null),
+        Cor("Prata", 0.01, 10.0),
+        Cor("Ouro", 0.1, 5.0)
+    ).withIndex().associate { it.index to it.value }
+
     val coresEscolhidas = mutableListOf<Int>()
 
     while(true){
@@ -23,13 +24,13 @@ fun main(){
                 // 4 faixas
                 printCores(Cores)
                 userEscolheCor(Cores, coresEscolhidas, 4)
-                break
+
             }
             5 -> {
                 // 5 faixas
                 printCores(Cores)
                 userEscolheCor(Cores, coresEscolhidas, 5)
-                break
+
             }
             else -> {
                 println("Programa Encerrado")
@@ -38,24 +39,24 @@ fun main(){
         }
     }
 }
-fun userEscolheCor(Cores: List<Cor>, coresEscolhidas: MutableList<Int>, nFaixas: Int): MutableList<Int>{
+fun userEscolheCor(Cores: Map<Int, Cor>, coresEscolhidas: MutableList<Int>, nFaixas: Int): MutableList<Int>{
     coresEscolhidas.clear()
     coresEscolhidas.addAll(escolherCor(nFaixas))
     val coresT = mutableListOf<Int>()
     val coresM = mutableListOf<Int>()
     println("Escolha a cor da faixa multiplicadora")
     for(cor in Cores){//imprimindo as cores dos multiplicadores
-        if(cor.M != null) {
-            println("${cor.id} - ${cor.nome}")
-            coresM.add(cor.id)
+        if(cor.value.M != null) {
+            println("${cor.key} - ${cor.value.nome}")
+            coresM.add(cor.key)
         }
     }
     escolherMT(coresM).let { coresEscolhidas.add(it) }
     println("Escolha a cor da faixa de tolerância")
     for(cor in Cores){//imprimindo as cores da tolerância
-        if(cor.T != null) {
-            println("${cor.id} - ${cor.nome}")
-            coresT.add(cor.id)
+        if(cor.value.T != null) {
+            println("${cor.key} - ${cor.value.nome}")
+            coresT.add(cor.key)
         }
     }
     escolherMT(coresT).let { coresEscolhidas.add(it) }
@@ -84,28 +85,35 @@ fun escolherMT(cores: MutableList<Int>): Int {
     return cor
 }
 
-fun calculo(escolha: MutableList<Int>, cores: List<Cor>):String{
+fun calculo(escolha: MutableList<Int>, cores: Map<Int, Cor>):String{
     if(escolha.size == 4){
         val M = buscarMultiplicador(escolha[2], cores)
-        var r = (escolha[0] * 10 + escolha[1]) * M.toFloat()
-        return "$r Ohms ${buscarTolerancia(escolha[3], cores)}%"
+        val r = (escolha[0] * 10 + escolha[1]) * M as Double
+        return "${formatarResultado(r)} ${buscarTolerancia(escolha[3], cores)}%"
     }
     else{
         val M = buscarMultiplicador(escolha[3], cores)
-        val r = (((escolha[0] * 100) + (escolha[1] * 10) + escolha[2]) * M.toFloat())
-        return "$r Ohms ${buscarTolerancia(escolha[4], cores)}%"
+        val r = ((escolha[0] * 100) + (escolha[1] * 10) + escolha[2]) * M as Double
+        return "${formatarResultado(r)} ${buscarTolerancia(escolha[4], cores)}%"
     }
 }
-fun buscarMultiplicador(id: Int, cores: List<Cor>): String{
-    val corMul = cores.find{it.id == id}
-    return corMul?.M.toString()
+fun buscarMultiplicador(id: Int, cores: Map<Int, Cor>): Double? {
+    val corMul = cores[id]?.M
+    return corMul
 }
-fun buscarTolerancia(id: Int, cores: List<Cor>): Any? {
-    val corTol = cores.find{it.id == id}
-    return corTol?.T
+fun buscarTolerancia(id: Int, cores: Map<Int, Cor>): Double? {
+    val corTol = cores[id]?.T
+    return corTol
 }
-fun printCores(cores: List<Cor>){
+fun printCores(cores: Map<Int, Cor>){
     for(i in 0..9){ //imprimindo as cores
-        println("$i - ${cores[i].nome}")
+        println("$i - ${cores[i]?.nome}")
+    }
+}
+fun formatarResultado(r : Double):String{
+    return when {
+        r >= 1_000_000 -> String.format("%dMOhms", (r / 1_000_000).toInt())
+        r >= 1_000 -> String.format("%dKOhms", (r / 1_000).toInt())
+        else -> String.format("%dOhms", r.toInt())
     }
 }
